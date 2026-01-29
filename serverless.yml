@@ -1,0 +1,185 @@
+# Serverless Framework Configuration for AWS Lambda
+# This file demonstrates serverless deployment capability
+
+service: truuth-document-portal
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'ap-southeast-2'}
+  memorySize: 512
+  timeout: 30
+
+  # Environment variables
+  environment:
+    NODE_ENV: production
+    DATABASE_URL: ${env:DATABASE_URL}
+    JWT_SECRET: ${env:JWT_SECRET}
+    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN}
+    TRUUTH_CLASSIFIER_URL: ${env:TRUUTH_CLASSIFIER_URL}
+    TRUUTH_VERIFY_URL: ${env:TRUUTH_VERIFY_URL}
+    TRUUTH_USERNAME: ${env:TRUUTH_USERNAME}
+    TRUUTH_PASSWORD: ${env:TRUUTH_PASSWORD}
+
+  # IAM permissions
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: arn:aws:logs:*:*:*
+
+plugins:
+  - serverless-offline
+  - serverless-plugin-optimize
+
+custom:
+  serverless-offline:
+    httpPort: 3001
+    noPrependStageInUrl: true
+
+  optimize:
+    external: ['@nestjs/microservices', '@nestjs/websockets']
+
+functions:
+  # Main API handler
+  api:
+    handler: backend/dist/serverless.handler
+    events:
+      - http:
+          method: ANY
+          path: /api/{proxy+}
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  # Health check (separate for monitoring)
+  health:
+    handler: backend/dist/serverless.handler
+    events:
+      - http:
+          method: GET
+          path: /api/health
+          cors: true
+
+  # Auth endpoints
+  authLogin:
+    handler: backend/dist/serverless.handler
+    events:
+      - http:
+          method: POST
+          path: /api/auth/login
+          cors: true
+
+  authLogout:
+    handler: backend/dist/serverless.handler
+    events:
+      - http:
+          method: POST
+          path: /api/auth/logout
+          cors: true
+
+  authMe:
+    handler: backend/dist/serverless.handler
+    events:
+      - http:
+          method: GET
+          path: /api/auth/me
+          cors: true
+
+  # Document endpoints
+  documentsUpload:
+    handler: backend/dist/serverless.handler
+    timeout: 60
+    memorySize: 1024
+    events:
+      - http:
+          method: POST
+          path: /api/documents/upload
+          cors: true
+
+  documentsList:
+    handler: backend/dist/serverless.handler
+    events:
+      - http:
+          method: GET
+          path: /api/documents
+          cors: true
+
+  documentsPoll:
+    handler: backend/dist/serverless.handler
+    events:
+      - http:
+          method: GET
+          path: /api/documents/poll
+          cors: true
+
+  documentsResult:
+    handler: backend/dist/serverless.handler
+    events:
+      - http:
+          method: GET
+          path: /api/documents/{id}/result
+          cors: true
+          request:
+            parameters:
+              paths:
+                id: true
+
+  documentsDelete:
+    handler: backend/dist/serverless.handler
+    events:
+      - http:
+          method: DELETE
+          path: /api/documents/{id}
+          cors: true
+          request:
+            parameters:
+              paths:
+                id: true
+
+package:
+  individually: false
+  patterns:
+    - '!node_modules/.prisma/client/libquery_engine-*'
+    - 'node_modules/.prisma/client/libquery_engine-rhel-*'
+    - '!node_modules/prisma/libquery_engine-*'
+    - '!node_modules/@prisma/engines/**'
+    - '!src/**'
+    - '!test/**'
+    - '!docker/**'
+    - '!frontend/**'
+    - '!.git/**'
+    - '!*.md'
+
+resources:
+  Resources:
+    # CORS configuration for API Gateway
+    GatewayResponseDefault4XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+
+    GatewayResponseDefault5XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_5XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
