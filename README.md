@@ -4,6 +4,19 @@ A full-stack document verification portal built with React, TypeScript, and Nest
 
 **Live Demo:** https://truuth-frontend.vercel.app
 
+**Test Credentials:**
+| Username | Password |
+|----------|----------|
+| `testuser` | `password123` |
+| `admin` | `admin123` |
+| `ijaz` | `password123` |
+| `ijaz1` | `password123` |
+| `ijaz2` | `password123` |
+| `ijaz3` | `password123` |
+| `ijaz4` | `password123` |
+| `ijaz5` | `password123` |
+| `ijaz6` | `password123` |
+
 ## Architecture Overview
 
 ```
