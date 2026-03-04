@@ -20,13 +20,8 @@ dist/
 Thumbs.db
 
 # Logs
-logs/
 *.log
 npm-debug.log*
 
-# Test coverage
+# Coverage
 coverage/
-
-# Prisma
-prisma/*.db
-prisma/*.db-journal

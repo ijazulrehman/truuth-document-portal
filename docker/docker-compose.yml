@@ -1,49 +1,47 @@
 version: "3.8"
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: truuth-postgres
+  mongodb:
+    image: mongo:7-jammy
+    container_name: truuth-mongodb
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: truuth_portal
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: truuth_portal
     ports:
-      - "5432:5432"
+      - "27017:27017"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - mongodb_data:/data/db
+      - ./mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d truuth_portal"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - truuth-network
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: truuth-pgadmin
+  mongo-express:
+    image: mongo-express:latest
+    container_name: truuth-mongo-express
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@truuth.local
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_CONFIG_SERVER_MODE: "False"
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin123@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
     ports:
-      - "5050:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
+      - "8081:8081"
     depends_on:
-      postgres:
+      mongodb:
         condition: service_healthy
     networks:
       - truuth-network
 
 volumes:
-  postgres_data:
-    driver: local
-  pgadmin_data:
+  mongodb_data:
     driver: local
 
 networks:

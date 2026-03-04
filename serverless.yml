@@ -16,7 +16,7 @@ provider:
   # Environment variables
   environment:
     NODE_ENV: production
-    DATABASE_URL: ${env:DATABASE_URL}
+    MONGODB_URL: ${env:MONGODB_URL}
     JWT_SECRET: ${env:JWT_SECRET}
     JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN}
     TRUUTH_CLASSIFIER_URL: ${env:TRUUTH_CLASSIFIER_URL}
@@ -37,15 +37,11 @@ provider:
 
 plugins:
   - serverless-offline
-  - serverless-plugin-optimize
 
 custom:
   serverless-offline:
     httpPort: 3001
     noPrependStageInUrl: true
-
-  optimize:
-    external: ['@nestjs/microservices', '@nestjs/websockets']
 
 functions:
   # Main API handler
@@ -150,10 +146,6 @@ functions:
 package:
   individually: false
   patterns:
-    - '!node_modules/.prisma/client/libquery_engine-*'
-    - 'node_modules/.prisma/client/libquery_engine-rhel-*'
-    - '!node_modules/prisma/libquery_engine-*'
-    - '!node_modules/@prisma/engines/**'
     - '!src/**'
     - '!test/**'
     - '!docker/**'

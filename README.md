@@ -1,6 +1,6 @@
 # Truuth Document Portal
 
-A full-stack document verification portal built with React, TypeScript, and NestJS. The portal enables applicants to upload and verify identity documents through the Truuth API.
+A full-stack document verification portal built with React, TypeScript, and Express.js. The portal enables applicants to upload and verify identity documents through the Truuth API.
 
 **Live Demo:** https://truuth-frontend.vercel.app
 
@@ -22,7 +22,7 @@ A full-stack document verification portal built with React, TypeScript, and Nest
 ```
 truuth-document-portal/
 ├── frontend/          # Next.js 14 React application
-├── backend/           # NestJS API server (BFF layer)
+├── backend/           # Express.js API server (BFF layer)
 ├── docker/            # Docker Compose for local development
 └── serverless.yml     # AWS Lambda deployment configuration
 ```
@@ -31,7 +31,7 @@ truuth-document-portal/
 
 - **Backend for Frontend (BFF)**: All Truuth API credentials are securely stored server-side. The frontend communicates exclusively with our backend, never directly with Truuth APIs.
 - **Serverless Ready**: The backend is structured for deployment on Vercel serverless functions or AWS Lambda.
-- **Persistent Storage**: PostgreSQL database for tracking users, document submissions, and verification results.
+- **Persistent Storage**: MongoDB database for tracking users, document submissions, and verification results.
 
 ## Tech Stack
 
@@ -42,26 +42,26 @@ truuth-document-portal/
 - Lucide React Icons
 
 ### Backend
-- NestJS 10
+- Express.js
 - TypeScript
-- Prisma ORM
-- PostgreSQL
+- Mongoose ODM
+- MongoDB
 - JWT Authentication
-- Passport.js
 
 ## Prerequisites
 
 - Node.js 18+
-- Docker & Docker Compose
+- Docker & Docker Compose (optional, for local MongoDB)
 - npm or yarn
+- MongoDB Atlas account (or local MongoDB)
 
 ## Local Development Setup
 
-### 1. Start PostgreSQL Database
+### 1. Start MongoDB Database (Optional - if not using Atlas)
 
 ```bash
 cd docker
-docker-compose up -d postgres
+docker-compose up -d
 ```
 
 ### 2. Backend Setup
@@ -70,10 +70,8 @@ docker-compose up -d postgres
 cd backend
 npm install
 cp .env.example .env
-# Update .env with your Truuth API credentials
-npx prisma generate
-npx prisma migrate dev
-npm run db:seed
+# Update .env with your MongoDB URL and Truuth API credentials
+npm run seed
 npm run start:dev
 ```
 
@@ -106,7 +104,7 @@ Swagger documentation available at: http://localhost:3001/api/docs
 
 | Variable | Description |
 |----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
+| `MONGODB_URL` | MongoDB connection string |
 | `JWT_SECRET` | JWT signing secret (min 32 chars) |
 | `JWT_EXPIRES_IN` | Token expiration (e.g., "24h") |
 | `TRUUTH_CLASSIFIER_URL` | Truuth Classifier API endpoint |
@@ -131,8 +129,6 @@ Both frontend and backend are configured for Vercel deployment:
 2. Set environment variables in Vercel dashboard
 3. Deploy frontend with the backend URL
 
-Backend uses Vercel's serverless functions via `vercel.json` configuration.
-
 ### AWS Lambda (Optional)
 
 The `serverless.yml` in the project root defines the Lambda configuration:
@@ -155,12 +151,13 @@ Detailed structure for each component:
 - `src/types/` - TypeScript type definitions
 
 ### Backend (`backend/`)
-- `src/auth/` - Authentication module (JWT, Passport)
-- `src/documents/` - Document upload and verification
-- `src/truuth/` - Truuth API integration
-- `src/users/` - User management
-- `src/prisma/` - Database service
-- `prisma/` - Schema and migrations
+- `src/controllers/` - Request handlers
+- `src/services/` - Business logic
+- `src/models/` - Mongoose schemas
+- `src/routes/` - API routes
+- `src/middleware/` - Express middleware
+- `src/config/` - Configuration and database
+- `scripts/` - Database seeding
 
 ## Document Verification Flow
 
@@ -178,6 +175,7 @@ Detailed structure for each component:
 - Passwords hashed with bcrypt (12 rounds)
 - All document endpoints require authentication
 - File validation for type and size limits
+- Rate limiting on all endpoints
 
 ## License
 

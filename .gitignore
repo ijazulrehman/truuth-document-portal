@@ -36,9 +36,8 @@ Thumbs.db
 coverage/
 .nyc_output/
 
-# Prisma
-*.db
-*.db-journal
+# MongoDB
+*.mongodb
 
 # Vercel
 .vercel/
