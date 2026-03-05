@@ -11,12 +11,12 @@ interface StatusBadgeProps {
 const statusConfig: Record<DocumentStatus, { label: string; className: string; icon?: typeof CheckCircle2 }> = {
   PENDING: {
     label: 'Pending',
-    className: 'bg-gray-100 text-gray-600',
+    className: 'bg-slate-100 text-slate-600',
     icon: Clock,
   },
   CLASSIFYING: {
     label: 'Classifying',
-    className: 'bg-amber-50 text-amber-600',
+    className: 'bg-blue-50 text-blue-600',
   },
   CLASSIFICATION_FAILED: {
     label: 'Invalid',
@@ -25,12 +25,12 @@ const statusConfig: Record<DocumentStatus, { label: string; className: string; i
   },
   SUBMITTED: {
     label: 'Submitted',
-    className: 'bg-gray-100 text-gray-600',
+    className: 'bg-slate-100 text-slate-600',
     icon: Clock,
   },
   PROCESSING: {
     label: 'Processing',
-    className: 'bg-amber-50 text-amber-600',
+    className: 'bg-blue-50 text-blue-600',
   },
   DONE: {
     label: 'Completed',

@@ -2,7 +2,7 @@
 
 import { Document, VerificationResult } from '@/types';
 import StatusBadge from './StatusBadge';
-import { Loader2, FileText, CreditCard } from 'lucide-react';
+import { Loader2, FileText, CreditCard, RefreshCw } from 'lucide-react';
 
 interface DocumentCardProps {
   document: Document;
@@ -13,7 +13,7 @@ interface DocumentCardProps {
 
 const documentTypeConfig: Record<string, { label: string; icon: typeof FileText }> = {
   AUSTRALIAN_PASSPORT: { label: 'Australian Passport', icon: CreditCard },
-  AUSTRALIAN_DRIVERS_LICENCE: { label: "Australian Driver's License", icon: CreditCard },
+  AUSTRALIAN_DRIVERS_LICENCE: { label: "Driver's License", icon: CreditCard },
   RESUME: { label: 'Resume', icon: FileText },
 };
 
@@ -41,62 +41,81 @@ export default function DocumentCard({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center flex-shrink-0">
-          <Icon className="w-5 h-5 text-gray-400" />
+    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      {/* Header */}
+      <div className="bg-blue-600 px-4 py-3 flex items-center justify-between">
+        <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <Icon className="w-4 h-4 text-white" />
         </div>
+        <StatusBadge status={document.status} outcomeStatus={outcome?.status} />
+      </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <h3 className="font-medium text-gray-900 truncate">{config.label}</h3>
-            <StatusBadge status={document.status} outcomeStatus={outcome?.status} />
-          </div>
-          <p className="text-sm text-gray-500 truncate">
-            {document.fileName} · {formatDate(document.createdAt)}
-          </p>
-        </div>
+      {/* Content */}
+      <div className="p-4">
+        <h3 className="font-medium text-slate-800 text-sm">{config.label}</h3>
+        <p className="text-xs text-slate-500 truncate mt-0.5">
+          {document.fileName} · {formatDate(document.createdAt)}
+        </p>
 
-        <div className="flex items-center gap-3 flex-shrink-0">
-          {outcome && (
-            <div className="text-right border-r border-gray-100 pr-3">
-              <div className="flex items-center gap-2 justify-end mb-0.5">
-                <p className="text-xs text-gray-400">Status:</p>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                  outcome.status === 'PASS' ? 'bg-emerald-100 text-emerald-700' :
-                  outcome.status === 'WARNING' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                }`}>
-                  {outcome.status === 'PASS' ? 'Pass' : outcome.status === 'WARNING' ? 'Review' : 'Fail'}
-                </span>
-              </div>
-              <p className="text-xs text-gray-400">
-                Authenticity Score: <span className={`font-semibold ${
-                  outcome.status === 'PASS' ? 'text-emerald-600' :
-                  outcome.status === 'WARNING' ? 'text-amber-600' : 'text-red-600'
-                }`}>{outcome.score}/100</span>
-              </p>
+        {/* Score Section */}
+        {outcome && (
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-slate-500">Authenticity Score</span>
+              <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                outcome.status === 'PASS' ? 'bg-emerald-100 text-emerald-700' :
+                outcome.status === 'WARNING' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+              }`}>
+                {outcome.status === 'PASS' ? 'Pass' : outcome.status === 'WARNING' ? 'Review' : 'Fail'}
+              </span>
             </div>
-          )}
+            <div className="flex items-baseline gap-1">
+              <span className={`text-xl font-semibold ${
+                outcome.status === 'PASS' ? 'text-emerald-600' :
+                outcome.status === 'WARNING' ? 'text-amber-600' : 'text-red-600'
+              }`}>{outcome.score}</span>
+              <span className="text-slate-400 text-xs">/100</span>
+            </div>
+            <div className="h-1 bg-slate-100 rounded-full mt-2 overflow-hidden">
+              <div
+                className={`h-full rounded-full ${
+                  outcome.status === 'PASS' ? 'bg-emerald-500' :
+                  outcome.status === 'WARNING' ? 'bg-amber-500' : 'bg-red-500'
+                }`}
+                style={{ width: `${outcome.score}%` }}
+              />
+            </div>
+          </div>
+        )}
 
-          {isProcessing && (
-            <button
-              onClick={() => onRefresh(document.id)}
-              disabled={isRefreshing}
-              className="text-sm text-gray-500 hover:text-gray-900 disabled:opacity-50 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              {isRefreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
-            </button>
-          )}
+        {/* Actions */}
+        {(isProcessing || canViewResult) && (
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            {isProcessing && (
+              <button
+                onClick={() => onRefresh(document.id)}
+                disabled={isRefreshing}
+                className="w-full text-xs text-slate-600 hover:text-slate-800 disabled:opacity-50 py-2 px-3 rounded hover:bg-slate-50 transition-colors flex items-center justify-center gap-1.5 border border-slate-200"
+              >
+                {isRefreshing ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3 w-3" />
+                )}
+                Refresh Status
+              </button>
+            )}
 
-          {canViewResult && (
-            <button
-              onClick={() => onViewResult(document)}
-              className="text-sm font-medium text-gray-900 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              View Result
-            </button>
-          )}
-        </div>
+            {canViewResult && (
+              <button
+                onClick={() => onViewResult(document)}
+                className="w-full text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 py-2 px-3 rounded transition-colors"
+              >
+                View Result
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ import Header from '@/components/Header';
 import DocumentCard from '@/components/DocumentCard';
 import DocumentUpload from '@/components/DocumentUpload';
 import ResultModal from '@/components/ResultModal';
-import { Loader2, FileText, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, Clock, XCircle, Shield } from 'lucide-react';
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -31,7 +31,6 @@ export default function DashboardPage() {
     try {
       const response = await documentsApi.getAll();
 
-      // Fetch verification results for completed documents
       const docsWithResults = await Promise.all(
         response.documents.map(async (doc) => {
           if (doc.hasResult && (doc.status === 'DONE' || doc.status === 'FAILED') && !doc.verificationResult) {
@@ -125,64 +124,82 @@ export default function DashboardPage() {
 
   if (authLoading || (!isAuthenticated && !authLoading)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
       </div>
     );
   }
 
   const isAllUploaded = summary.uploaded >= summary.total;
   const isAllCompleted = summary.completed >= summary.total;
+  const progressPercent = (summary.uploaded / summary.total) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <Header />
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-        {/* Progress Card */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
+      {/* Header Banner */}
+      <div className="bg-blue-600">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+              <Shield className="w-5 h-5 text-white" />
+            </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Document Verification</h1>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <h1 className="text-lg font-semibold text-white">Document Verification</h1>
+              <p className="text-blue-100 text-sm">
+                Secure identity verification
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+        {/* Progress Card */}
+        <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-800">Upload Progress</h2>
+              <p className="text-xs text-slate-500">
                 {isAllCompleted
-                  ? 'All documents verified successfully!'
-                  : `${summary.uploaded} of ${summary.total} documents uploaded`
+                  ? 'All documents verified!'
+                  : `${summary.uploaded} of ${summary.total} uploaded`
                 }
               </p>
             </div>
             {isAllCompleted && (
-              <div className="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               </div>
             )}
           </div>
 
           {/* Progress Bar */}
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gray-900 rounded-full transition-all duration-500"
-              style={{ width: `${(summary.uploaded / summary.total) * 100}%` }}
+              className="h-full bg-blue-600 rounded-full transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
             />
           </div>
 
           {/* Status Pills */}
           {(summary.processing > 0 || summary.completed > 0 || summary.failed > 0) && (
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-3">
               {summary.completed > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-900 text-white text-xs font-medium rounded-full">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-medium rounded">
                   <CheckCircle2 className="w-3 h-3" />
                   {summary.completed} verified
                 </span>
               )}
               {summary.processing > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">
                   <Clock className="w-3 h-3" />
                   {summary.processing} processing
                 </span>
               )}
               {summary.failed > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">
                   <XCircle className="w-3 h-3" />
                   {summary.failed} failed
                 </span>
@@ -192,18 +209,18 @@ export default function DashboardPage() {
         </div>
 
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm">
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded text-xs">
             {error}
           </div>
         )}
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-300 mb-4" />
-            <p className="text-sm text-gray-400">Loading documents...</p>
+          <div className="flex flex-col items-center justify-center py-16">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-600 mb-3" />
+            <p className="text-xs text-slate-500">Loading documents...</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {documents.map((doc) => (
               <DocumentCard
                 key={doc.id}
@@ -216,17 +233,6 @@ export default function DashboardPage() {
 
             {!isAllUploaded && (
               <DocumentUpload onUploadComplete={fetchDocuments} />
-            )}
-
-            {documents.length === 0 && (
-              <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
-                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <FileText className="w-8 h-8 text-gray-300" />
-                </div>
-                <h3 className="text-base font-medium text-gray-900 mb-1">No documents yet</h3>
-                <p className="text-sm text-gray-500 mb-6">Start by uploading your first document</p>
-                <DocumentUpload onUploadComplete={fetchDocuments} />
-              </div>
             )}
           </div>
         )}
