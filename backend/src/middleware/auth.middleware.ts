@@ -5,23 +5,18 @@ import { ErrorCode } from '../utils/constants';
 import { AppError } from '../utils/errors';
 import { JwtPayload, AuthenticatedRequest } from '../types';
 
-// Routes that don't require authentication
-const publicRoutes: Array<{ method: string; path: string | RegExp }> = [
-  { method: 'POST', path: '/api/auth/login' },
-  { method: 'GET', path: '/api/health' },
-  { method: 'GET', path: '/api/health/ready' },
-  { method: 'GET', path: '/api/health/live' },
-  { method: 'GET', path: '/api/docs' },
-  { method: 'GET', path: '/api/docs.json' },
+// Routes that don't require authentication (patterns without /api prefix)
+const publicPatterns: Array<{ method: string; pattern: RegExp }> = [
+  { method: 'POST', pattern: /^(\/api)?\/auth\/login\/?$/ },
+  { method: 'GET', pattern: /^(\/api)?\/health(\/.*)?$/ },
+  { method: 'GET', pattern: /^(\/api)?\/docs(\.json)?\/?$/ },
+  { method: 'OPTIONS', pattern: /.*/ }, // Allow all preflight requests
 ];
 
 const isPublicRoute = (method: string, path: string): boolean => {
-  return publicRoutes.some((route) => {
+  return publicPatterns.some((route) => {
     if (route.method !== method) return false;
-    if (typeof route.path === 'string') {
-      return path === route.path || path.startsWith(route.path + '/');
-    }
-    return route.path.test(path);
+    return route.pattern.test(path);
   });
 };
 
